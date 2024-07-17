@@ -1,16 +1,16 @@
 import "./SearchForm.css";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { InputMask } from "@react-input/mask";
 import type { MaskEventDetail, MaskEvent } from "@react-input/mask";
-import { apiClient, apiConfig } from "../api/axiosConfig";
-import { AxiosResponse } from "axios";
+import { apiClient, apiConfig } from "../../src/api/axiosConfig";
+import { AxiosError, AxiosResponse } from "axios";
 
-interface ISearchForm {
+interface IClient {
   email: string;
-  phone?: string;
+  number?: string;
 }
 
 const emailRegex = new RegExp(
@@ -34,7 +34,8 @@ const SearchForm = () => {
     reset,
     handleSubmit,
     formState: { errors },
-  } = useForm<ISearchForm>(formOptions);
+  } = useForm<IClient>(formOptions);
+  const controllerRef = useRef<AbortController>();
 
   const [detail, setDetail] = useState<MaskEventDetail | null>(null);
 
@@ -42,26 +43,34 @@ const SearchForm = () => {
     setDetail(event.detail);
   };
 
-  const onSubmit = async (data: ISearchForm) => {
-    try {
-      const response: AxiosResponse = await apiClient.post(
-        "/clients",
-        data,
-        apiConfig
-      );
-
-      if (response.status !== 200) {
-        throw new Error(`Failed (HTTP status code: ${response.status})`);
-      }
-
-      const client = await response.data;
-      console.log(client);
-    } catch (error) {
-      console.log(error);
+  const onSubmit = async (data: IClient) => {
+    if (controllerRef.current) {
+      controllerRef.current.abort();
     }
 
-    setDetail(null);
-    reset();
+    controllerRef.current = new AbortController();
+    const signal = controllerRef.current.signal;
+
+    try {
+      const response: AxiosResponse = await apiClient.post("/clients", data, {
+        ...apiConfig,
+        signal,
+      });
+
+      const client = await response.data;
+      console.log("client", client);
+
+      setDetail(null);
+      reset();
+    } catch (err) {
+      const error = err as AxiosError;
+
+      if (error?.message !== "canceled") {
+        console.error(error);
+        setDetail(null);
+        reset();
+      }
+    }
   };
 
   return (
@@ -80,7 +89,7 @@ const SearchForm = () => {
       <div className="field">
         <label className="label">Phone</label>
         <InputMask
-          {...register("phone")}
+          {...register("number")}
           type="text"
           className="input"
           placeholder="Enter Phone"

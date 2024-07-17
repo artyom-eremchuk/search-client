@@ -1,4 +1,6 @@
-const db = [
+import { IClient } from "./interfaces";
+
+const db: IClient[] = [
   {
     email: "jim@gmail.com",
     number: "221122",

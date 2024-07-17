@@ -1,4 +1,4 @@
-import SearchForm from "./SearchForm/SearchForm";
+import SearchForm from "../components/SearchForm/SearchForm";
 import "./App.css";
 
 const App = () => {
