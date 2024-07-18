@@ -1,6 +1,6 @@
-import { IClient } from "./interfaces";
+import { IClient } from "../interfaces";
 
-const db: IClient[] = [
+const database: IClient[] = [
   {
     email: "jim@gmail.com",
     number: "221122",
@@ -31,4 +31,4 @@ const db: IClient[] = [
   },
 ];
 
-export default db;
+export default database;
