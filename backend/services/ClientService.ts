@@ -30,11 +30,11 @@ export class ClientService {
   findOne(email: string, number: string) {
     const tranformedNumber = this.tranformNumber(number);
 
-    const client = this.db.find(
+    const client = this.db.filter(
       (client) => client.email === email && client.number === tranformedNumber
     );
 
-    if (!client) {
+    if (!client.length) {
       return this.responseWithDelay(this.res, 404, "Client Not Found", 5000);
     }
 
